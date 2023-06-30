@@ -29,7 +29,23 @@ fn main() {
     println!("Found {count} messages in inbox");
 
     for message in messages.iter() {
-        post::process_message(&message);
+        let post = post::Post::from(&message);
+
+        if let Some(post) = post {
+            dbg!(post);
+        } else {
+            let body = message.body().expect("Message did not have a body!");
+            let body = std::str::from_utf8(body)
+                .expect("Message was not valid utf-8")
+                .to_string();
+
+            eprintln!("Failed to parse message\n\n{body}\n\n");
+            panic!("Failed to parse message");
+        }
+
+        if true {
+            panic!("One is enough for now ...");
+        }
     }
 
     // Be nice to the server and log out.

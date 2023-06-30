@@ -1,15 +1,102 @@
 use imap::types::Fetch;
 
-pub(crate) fn process_message(message: &Fetch) {
-    // Extract the message's body.
-    let body = message.body().expect("Message did not have a body!");
-    let body = std::str::from_utf8(body)
-        .expect("Message was not valid utf-8")
-        .to_string();
+#[derive(Debug)]
+#[allow(dead_code)] // TEMPORARY while building
+pub struct Post {
+    date: String,
+    subject: String,
+    link: String,
+    text: String,
+}
 
-    println!("{body}");
+impl Post {
+    pub fn from(message: &Fetch) -> Option<Self> {
+        let body = message.body().expect("Message did not have a body");
+        let body = std::str::from_utf8(body)
+            .expect("Message was not valid UTF-8")
+            .to_string();
 
-    if true {
-        panic!("One is enough for now ...");
+        let mut date: Option<String> = None;
+        let mut subject: Option<String> = None;
+        let mut boundary: Option<String> = None;
+        let mut link: Option<String> = None;
+        let mut text = "".to_owned();
+
+        let mut lines = body.lines();
+
+        loop {
+            if let Some(line) = lines.next() {
+                if line.is_empty() {
+                    break;
+                }
+
+                if line.starts_with("Date: ") {
+                    date = Some((&line[6..]).to_owned());
+                }
+
+                if line.starts_with("Subject: ") {
+                    subject = Some((&line[9..]).to_owned());
+                }
+
+                if line.starts_with(" boundary=") {
+                    boundary = Some(format!("--{}", (&line[10..]).to_owned()));
+                }
+            } else {
+                break;
+            }
+        }
+
+        let boundary = if let Some(boundary) = boundary {
+            boundary
+        } else {
+            eprintln!("No boundary value found");
+            return None;
+        };
+
+        loop {
+            let line = if let Some(line) = lines.next() {
+                println!(">> {line}");
+                line
+            } else {
+                break;
+            };
+
+            if line == boundary {
+                if let Some(content_type) = lines.next() {
+                    if content_type.to_lowercase().trim() == "content-type: text/plain" {
+                        lines.next(); // ignore blank line
+
+                        loop {
+                            if let Some(line) = lines.next() {
+                                if line == boundary {
+                                    text = text.trim().to_owned();
+                                    break;
+                                } else if line.starts_with("https://") && link.is_none() {
+                                    link = Some(line.to_owned());
+                                } else {
+                                    text += line;
+                                    text += "/n";
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Some(date) = date {
+            if let Some(link) = link {
+                return Some(Self {
+                    date,
+                    subject: subject.unwrap_or_default(),
+                    link,
+                    text,
+                });
+            }
+        }
+
+        None
     }
 }
