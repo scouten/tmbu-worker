@@ -1,6 +1,10 @@
 use std::env;
 
+mod post;
+
 fn main() {
+    // Adapted from example at https://github.com/jonhoo/rust-imap/tree/v2.4.1#readme.
+
     let domain = env::var("TMBU_IMAP_HOST").unwrap();
     let tls = native_tls::TlsConnector::builder().build().unwrap();
 
@@ -18,26 +22,15 @@ fn main() {
     // Read contents of primary inbox.
     imap_session.select("INBOX").unwrap();
 
-    // Fetch message number 1 in this mailbox, along with its RFC822 field.
-    // RFC 822 dictates the format of the body of e-mails.
+    // Read first 500 message in inbox.
     let messages = imap_session.fetch("1:500", "RFC822").unwrap();
 
-    println!("Found {} messages in inbox", messages.len());
+    let count = messages.len();
+    println!("Found {count} messages in inbox");
 
-    let message = if let Some(m) = messages.iter().next() {
-        m
-    } else {
-        eprintln!("Mailbox empty");
-        return;
-    };
-
-    // Extract the message's body.
-    let body = message.body().expect("Message did not have a body!");
-    let body = std::str::from_utf8(body)
-        .expect("Message was not valid utf-8")
-        .to_string();
-
-    // println!("{body}");
+    for message in messages.iter() {
+        post::process_message(&message);
+    }
 
     // Be nice to the server and log out.
     imap_session.logout().unwrap();
