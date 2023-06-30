@@ -1,8 +1,6 @@
 use std::env;
 
 fn main() {
-    println!("Hello, world!");
-
     let domain = env::var("TMBU_IMAP_HOST").unwrap();
     let tls = native_tls::TlsConnector::builder().build().unwrap();
 
@@ -17,12 +15,15 @@ fn main() {
 
     let mut imap_session = client.login(username, password).unwrap();
 
-    // We want to fetch the first email in the INBOX mailbox.
+    // Read contents of primary inbox.
     imap_session.select("INBOX").unwrap();
 
     // Fetch message number 1 in this mailbox, along with its RFC822 field.
     // RFC 822 dictates the format of the body of e-mails.
-    let messages = imap_session.fetch("1", "RFC822").unwrap();
+    let messages = imap_session.fetch("1:500", "RFC822").unwrap();
+
+    println!("Found {} messages in inbox", messages.len());
+
     let message = if let Some(m) = messages.iter().next() {
         m
     } else {
@@ -36,7 +37,7 @@ fn main() {
         .expect("Message was not valid utf-8")
         .to_string();
 
-    println!("{body}");
+    // println!("{body}");
 
     // Be nice to the server and log out.
     imap_session.logout().unwrap();
