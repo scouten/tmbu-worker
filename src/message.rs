@@ -1,9 +1,10 @@
+use chrono::{offset::FixedOffset, DateTime};
 use imap::types::Fetch;
 
 #[derive(Debug)]
 #[allow(dead_code)] // TEMPORARY while building
 pub struct Message {
-    date: String,
+    date: DateTime<FixedOffset>,
     subject: String,
     link: String,
     text: String,
@@ -16,7 +17,7 @@ impl Message {
             .expect("Message was not valid UTF-8")
             .to_string();
 
-        let mut date: Option<String> = None;
+        let mut date: Option<DateTime<FixedOffset>> = None;
         let mut subject: Option<String> = None;
         let mut boundary: Option<String> = None;
         let mut link: Option<String> = None;
@@ -31,7 +32,7 @@ impl Message {
                 }
 
                 if line.starts_with("Date: ") {
-                    date = Some((&line[6..]).to_owned());
+                    date = Some(DateTime::parse_from_rfc2822(&line[6..]).unwrap());
                 }
 
                 if line.starts_with("Subject: ") {
