@@ -1,6 +1,6 @@
 use std::env;
 
-mod post;
+mod message;
 
 fn main() {
     // Adapted from example at https://github.com/jonhoo/rust-imap/tree/v2.4.1#readme.
@@ -28,13 +28,13 @@ fn main() {
     let count = messages.len();
     println!("Found {count} messages in inbox");
 
-    for message in messages.iter() {
-        let post = post::Post::from(&message);
+    for imap_message in messages.iter() {
+        let message = message::Message::from(&imap_message);
 
-        if let Some(post) = post {
-            dbg!(post);
+        if let Some(message) = message {
+            dbg!(message);
         } else {
-            let body = message.body().expect("Message did not have a body!");
+            let body = imap_message.body().expect("Message did not have a body!");
             let body = std::str::from_utf8(body)
                 .expect("Message was not valid utf-8")
                 .to_string();

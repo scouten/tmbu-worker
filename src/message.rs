@@ -2,14 +2,14 @@ use imap::types::Fetch;
 
 #[derive(Debug)]
 #[allow(dead_code)] // TEMPORARY while building
-pub struct Post {
+pub struct Message {
     date: String,
     subject: String,
     link: String,
     text: String,
 }
 
-impl Post {
+impl Message {
     pub fn from(message: &Fetch) -> Option<Self> {
         let body = message.body().expect("Message did not have a body");
         let body = std::str::from_utf8(body)
@@ -55,7 +55,6 @@ impl Post {
 
         loop {
             let line = if let Some(line) = lines.next() {
-                println!(">> {line}");
                 line
             } else {
                 break;
