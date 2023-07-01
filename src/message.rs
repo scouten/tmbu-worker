@@ -1,5 +1,9 @@
+use std::collections::HashSet;
+
 use chrono::{offset::FixedOffset, DateTime};
 use imap::types::Fetch;
+use lazy_static::lazy_static;
+use regex::Regex;
 
 #[derive(Debug)]
 #[allow(dead_code)] // TEMPORARY while building
@@ -8,6 +12,7 @@ pub struct Message {
     subject: String,
     link: String,
     text: String,
+    tags: HashSet<String>,
 }
 
 impl Message {
@@ -22,6 +27,7 @@ impl Message {
         let mut boundary: Option<String> = None;
         let mut link: Option<String> = None;
         let mut text = "".to_owned();
+        let mut tags: HashSet<String> = HashSet::new();
 
         let mut lines = body.lines();
 
@@ -36,7 +42,10 @@ impl Message {
                 }
 
                 if line.starts_with("Subject: ") {
-                    subject = Some((&line[9..]).to_owned());
+                    let (subj, new_tags) = extract_tags(&line[9..]);
+
+                    subject = Some(subj.trim().to_owned());
+                    tags.extend(new_tags);
                 }
 
                 if line.starts_with(" boundary=") {
@@ -74,8 +83,12 @@ impl Message {
                                 } else if line.starts_with("https://") && link.is_none() {
                                     link = Some(line.to_owned());
                                 } else {
-                                    text += line;
+                                    let (line, new_tags) = extract_tags(line);
+
+                                    text += &line;
                                     text += "/n";
+
+                                    tags.extend(new_tags);
                                 }
                             } else {
                                 break;
@@ -92,11 +105,26 @@ impl Message {
                     date,
                     subject: subject.unwrap_or_default(),
                     link,
-                    text,
+                    text: text.trim().to_owned(),
+                    tags,
                 });
             }
         }
 
         None
     }
+}
+
+fn extract_tags(s: &str) -> (String, HashSet<String>) {
+    lazy_static! {
+        static ref HASHTAG: Regex = Regex::new(r#"#(\w+)"#).unwrap();
+    }
+
+    let tags = HASHTAG
+        .captures_iter(s)
+        .map(|item| item[1].to_owned())
+        .collect();
+    let rem = HASHTAG.replace_all(s, "").to_string();
+
+    (rem, tags)
 }
