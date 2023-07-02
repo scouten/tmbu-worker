@@ -31,17 +31,20 @@ fn main() {
     for imap_message in messages.iter() {
         let message = message::Message::from(&imap_message);
 
-        if let Some(message) = message {
-            dbg!(message);
-        } else {
-            let body = imap_message.body().expect("Message did not have a body!");
-            let body = std::str::from_utf8(body)
-                .expect("Message was not valid utf-8")
-                .to_string();
+        let message = match message {
+            Some(message) => message,
+            None => {
+                let body = imap_message.body().expect("Message did not have a body!");
+                let body = std::str::from_utf8(body)
+                    .expect("Message was not valid utf-8")
+                    .to_string();
 
-            eprintln!("Failed to parse message\n\n{body}\n\n");
-            panic!("Failed to parse message");
-        }
+                eprintln!("Failed to parse message\n\n{body}\n\n");
+                panic!("Failed to parse message");
+            }
+        };
+
+        dbg!(message);
 
         if true {
             panic!("One is enough for now ...");
