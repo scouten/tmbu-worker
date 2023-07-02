@@ -1,6 +1,6 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, env, fs, fs::File, io::Write, path::PathBuf};
 
-use chrono::{offset::FixedOffset, DateTime};
+use chrono::{offset::FixedOffset, DateTime, Datelike};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::Deserialize;
@@ -102,9 +102,8 @@ impl Post {
         text = text.trim().to_owned();
 
         self.text = format!(
-            "via [{user_name}]({user_link}): {user_comment}\n\n{text}",
+            "via [{user_name}]({link}): {user_comment}\n\n{text}",
             user_name = user.name,
-            user_link = note.attributed_to,
         )
         .trim()
         .to_owned();
@@ -159,6 +158,65 @@ impl Post {
             })
             .collect();
     }
+
+    pub fn render(&self) {
+        let zola_path = env::var("TMBU_ZOLA_ROOT").unwrap();
+
+        let date = self.date.date_naive();
+
+        let mut page_path = PathBuf::from(zola_path);
+        page_path = page_path.join("content");
+        page_path = page_path.join(date.year().to_string());
+        fs::create_dir_all(&page_path).unwrap();
+
+        page_path = page_path.join(format!(
+            "{month:02}-{day:02}-{slug}.md",
+            month = date.month(),
+            day = date.day(),
+            slug = slug_from_title(&self.subject)
+        ));
+
+        println!("Creating blog post at {page_path:#?}");
+
+        let mut md = File::create(&page_path).unwrap();
+        writeln!(md, "+++").unwrap();
+        writeln!(md, "title = {title:#?}", title = self.subject).unwrap();
+        writeln!(md, "date = {date:#?}", date = self.date).unwrap();
+        writeln!(md).unwrap();
+
+        writeln!(md, "[taxonomies]").unwrap();
+
+        if !self.tags.is_empty() {
+            writeln!(
+                md,
+                "tag = [{tags}]",
+                tags = self
+                    .tags
+                    .iter()
+                    .map(|tag| format!("{tag:#?}"))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+            .unwrap();
+        }
+
+        if let Some(ref via) = self.via {
+            writeln!(md, "via = [{via}]", via = format!("{via:#?}")).unwrap();
+        }
+        writeln!(md, "+++").unwrap();
+        writeln!(md).unwrap();
+
+        let text = format!("{text}\n\n", text = self.text);
+        let (before, after) = text.split_once("\n\n").unwrap();
+
+        writeln!(md, "{before}", before = before.trim()).unwrap();
+        writeln!(md).unwrap();
+
+        writeln!(md, "<!-- more -->").unwrap();
+        writeln!(md).unwrap();
+
+        writeln!(md, "{after}", after = after.trim()).unwrap();
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -172,4 +230,16 @@ struct MastodonNote {
 #[derive(Debug, Deserialize)]
 struct MastodonUser {
     pub(crate) name: String,
+}
+
+fn slug_from_title(title: &str) -> String {
+    lazy_static! {
+        static ref NON_WORD_CHARS: Regex = Regex::new(r#"\W+"#).unwrap();
+        static ref TRAILING_HYPHEN: Regex = Regex::new(r#"-$"#).unwrap();
+    }
+
+    let title = NON_WORD_CHARS.replace_all(&title, "-").to_string();
+    let title = TRAILING_HYPHEN.replace(&title, "").to_string();
+    let title = title.to_ascii_lowercase();
+    title
 }

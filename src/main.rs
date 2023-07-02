@@ -54,6 +54,8 @@ fn main() {
 
         dbg!(&post);
 
+        post.render();
+
         if true {
             panic!("One is enough for now ...");
         }
