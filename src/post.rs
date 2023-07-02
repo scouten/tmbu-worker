@@ -71,8 +71,27 @@ impl Post {
             }
         };
 
-        dbg!(&note);
-        dbg!(&user);
+        // TO DO: parse out link?
+
+        // OK, this is definitely a Mastodon post link.
+        // Update pending Zola post accordingly.
+        self.via = Some("Mastodon".to_owned());
+
+        let mut text = self.text.clone();
+        text = text.replace(link, "");
+        text = text.trim().to_owned();
+
+        self.text = format!(
+            "via [{user_name}]({user_link}): {user_comment}\n\n<!-- more -->\n\n{text}",
+            user_name = user.name,
+            user_link = note.attributed_to,
+            user_comment = note.content
+        );
+
+        self.link = None;
+
+        // dbg!(&note);
+        // dbg!(&user);
     }
 }
 
