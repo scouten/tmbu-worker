@@ -108,6 +108,39 @@ impl Post {
         .trim()
         .to_owned();
     }
+
+    pub fn add_link_text(&mut self) {
+        // If post contains a link, grab its title and
+        // add that link to the end of the post message.
+
+        // If no link, nothing to do here.
+        let link = match self.link {
+            Some(ref link) => link.to_owned(),
+            None => {
+                return;
+            }
+        };
+
+        let body = match reqwest::blocking::get(&link).and_then(|r| r.text()) {
+            Ok(body) => body,
+            Err(e) => {
+                eprintln!("Unable to follow post link {link}\n\n{e}\n");
+                return;
+            }
+        };
+
+        lazy_static! {
+            static ref TITLE: Regex = Regex::new(r#"<title>(.*)</title>"#).unwrap();
+        }
+
+        let title = if let Some(link_capture) = TITLE.captures(&body) {
+            link_capture[1].to_owned()
+        } else {
+            link.to_owned()
+        };
+
+        self.text = format!("{text}\n\n[{title}]({link})", text = self.text);
+    }
 }
 
 #[derive(Debug, Deserialize)]
