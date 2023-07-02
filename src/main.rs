@@ -1,6 +1,7 @@
 use std::env;
 
 mod message;
+mod post;
 
 fn main() {
     // Adapted from example at https://github.com/jonhoo/rust-imap/tree/v2.4.1#readme.
@@ -29,6 +30,7 @@ fn main() {
     println!("Found {count} messages in inbox");
 
     for imap_message in messages.iter() {
+        // Pick apart the important parts of the IMAP message.
         let message = message::Message::from(&imap_message);
 
         let message = match message {
@@ -44,7 +46,9 @@ fn main() {
             }
         };
 
-        dbg!(message);
+        // Now turn the parsed message into a pending Zola post.
+        let post = post::Post::from(message);
+        dbg!(post);
 
         if true {
             panic!("One is enough for now ...");

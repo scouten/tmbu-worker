@@ -6,13 +6,12 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 #[derive(Debug)]
-#[allow(dead_code)] // TEMPORARY while building
 pub struct Message {
-    date: DateTime<FixedOffset>,
-    subject: String,
-    link: Option<String>,
-    text: String,
-    tags: HashSet<String>,
+    pub(crate) date: DateTime<FixedOffset>,
+    pub(crate) subject: String,
+    pub(crate) link: Option<String>,
+    pub(crate) text: String,
+    pub(crate) tags: HashSet<String>,
 }
 
 impl Message {
