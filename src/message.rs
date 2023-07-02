@@ -10,7 +10,7 @@ use regex::Regex;
 pub struct Message {
     date: DateTime<FixedOffset>,
     subject: String,
-    link: String,
+    link: Option<String>,
     text: String,
     tags: HashSet<String>,
 }
@@ -100,15 +100,13 @@ impl Message {
         }
 
         if let Some(date) = date {
-            if let Some(link) = link {
-                return Some(Self {
-                    date,
-                    subject: subject.unwrap_or_default(),
-                    link,
-                    text: text.trim().to_owned(),
-                    tags,
-                });
-            }
+            return Some(Self {
+                date,
+                subject: subject.unwrap_or_default(),
+                link,
+                text: text.trim().to_owned(),
+                tags,
+            });
         }
 
         None
