@@ -50,6 +50,7 @@ fn main() {
         let mut post = post::Post::from(message);
         post.update_if_mastodon_link();
         post.add_link_text();
+        post.capitalize_tags();
 
         dbg!(&post);
 

@@ -4,6 +4,7 @@ use chrono::{offset::FixedOffset, DateTime};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::Deserialize;
+use titlecase::titlecase;
 
 use crate::message::Message;
 
@@ -140,6 +141,23 @@ impl Post {
         };
 
         self.text = format!("{text}\n\n[{title}]({link})", text = self.text);
+    }
+
+    pub fn capitalize_tags(&mut self) {
+        self.tags = self
+            .tags
+            .iter()
+            .map(|tag| {
+                let mut tag = titlecase(tag);
+                match tag.as_str() {
+                    "Aws" => {
+                        tag = "AWS".to_owned();
+                    }
+                    _ => (),
+                };
+                tag
+            })
+            .collect();
     }
 }
 
