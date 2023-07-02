@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 
 use chrono::{offset::FixedOffset, DateTime};
+use lazy_static::lazy_static;
+use regex::Regex;
 use serde::Deserialize;
 
 use crate::message::Message;
@@ -34,7 +36,7 @@ impl Post {
 
         // If no link, nothing to do here.
         let link = match self.link {
-            Some(ref link) => link,
+            Some(ref link) => link.to_owned(),
             None => {
                 return;
             }
@@ -43,7 +45,7 @@ impl Post {
         let client = reqwest::blocking::Client::builder().build().unwrap();
 
         let note: MastodonNote = match client
-            .get(link)
+            .get(&link)
             .header("Accept", "application/activity+json")
             .send()
             .and_then(|r| r.json())
@@ -71,35 +73,45 @@ impl Post {
             }
         };
 
-        // TO DO: parse out link?
-
         // OK, this is definitely a Mastodon post link.
-        // Update pending Zola post accordingly.
+        // See if it has a link to another page.
+        let mut user_comment = note.content.clone();
+        lazy_static! {
+            static ref A_HREF: Regex = Regex::new(r#"<a href="([^"]*)".*>.*</a>"#).unwrap();
+        }
+
+        if let Some(link_capture) = A_HREF.captures(&user_comment) {
+            let href = link_capture[1].to_owned();
+            self.link = Some(href.to_string());
+
+            user_comment = A_HREF.replace(&user_comment, "").to_string();
+        }
+
+        lazy_static! {
+            static ref P: Regex = Regex::new(r#"</?p>"#).unwrap();
+        }
+
+        user_comment = P.replace_all(&user_comment, "\n").trim().to_string();
+
+        // Update pending Zola post.
         self.via = Some("Mastodon".to_owned());
 
         let mut text = self.text.clone();
-        text = text.replace(link, "");
+        text = text.replace(&link, "");
         text = text.trim().to_owned();
 
         self.text = format!(
-            "via [{user_name}]({user_link}): {user_comment}\n\n<!-- more -->\n\n{text}",
+            "via [{user_name}]({user_link}): {user_comment}\n\n{text}",
             user_name = user.name,
             user_link = note.attributed_to,
-            user_comment = note.content
-        );
-
-        self.link = None;
-
-        // dbg!(&note);
-        // dbg!(&user);
+        )
+        .trim()
+        .to_owned();
     }
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // TEMPORARY while building
 struct MastodonNote {
-    pub(crate) url: String,
-
     #[serde(rename = "attributedTo")]
     pub(crate) attributed_to: String,
 
@@ -107,7 +119,6 @@ struct MastodonNote {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // TEMPORARY while building
 struct MastodonUser {
     pub(crate) name: String,
 }
