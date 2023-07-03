@@ -154,6 +154,12 @@ impl Post {
                     "Aws" => {
                         tag = "AWS".to_owned();
                     }
+                    "Usb" => {
+                        tag = "USB".to_owned();
+                    }
+                    "Usb-C" => {
+                        tag = "USB-C".to_owned();
+                    }
                     _ => (),
                 };
                 tag
