@@ -51,10 +51,11 @@ fn main() {
         post.update_if_mastodon_link();
         post.add_link_text();
         post.capitalize_tags();
-
-        dbg!(&post);
-
         post.render();
+
+        imap_session
+            .store(format!("{}", imap_message.message), "+FLAGS (\\Deleted)")
+            .unwrap();
 
         if true {
             panic!("One is enough for now ...");
