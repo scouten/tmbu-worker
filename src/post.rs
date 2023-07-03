@@ -151,8 +151,14 @@ impl Post {
             .map(|tag| {
                 let mut tag = titlecase(tag);
                 match tag.as_str() {
+                    "Activitypub" => {
+                        tag = "ActivityPub".to_owned();
+                    }
                     "Aws" => {
                         tag = "AWS".to_owned();
+                    }
+                    "Sbom" => {
+                        tag = "SBOM".to_owned();
                     }
                     "Usb" => {
                         tag = "USB".to_owned();
