@@ -175,11 +175,11 @@ impl Post {
         let mut page_path = PathBuf::from(&zola_path);
         page_path = page_path.join("content");
         page_path = page_path.join(date.year().to_string());
+        page_path = page_path.join(format!("{month:02}", month = date.month()));
         fs::create_dir_all(&page_path).unwrap();
 
         page_path = page_path.join(format!(
-            "{month:02}-{day:02}-{slug}.md",
-            month = date.month(),
+            "{day:02}-{slug}.md",
             day = date.day(),
             slug = slug_from_title(&self.subject)
         ));
