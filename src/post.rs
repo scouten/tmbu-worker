@@ -8,7 +8,7 @@ use regex::Regex;
 use serde::Deserialize;
 use titlecase::titlecase;
 
-use crate::message::Message;
+use crate::{message::Message, read_line::ReadLine};
 
 #[derive(Debug)]
 #[allow(dead_code)] // TEMPORARY while building
@@ -237,6 +237,27 @@ impl Post {
             .current_dir(&zola_path)
             .output()
             .unwrap();
+    }
+
+    pub fn confirm(&mut self) {
+        dbg!(&self);
+
+        self.subject = ReadLine::new("Title").default(self.subject.clone()).get();
+
+        let mut tags = self
+            .tags
+            .iter()
+            .map(|tag| format!("#{tag}"))
+            .collect::<Vec<String>>();
+
+        tags.sort();
+
+        let tags = ReadLine::new("Tags").default(tags.join(" ")).get();
+
+        self.tags = tags
+            .split(" ")
+            .map(|tag| tag.trim_start_matches("#").to_owned())
+            .collect();
     }
 }
 

@@ -2,6 +2,7 @@ use std::env;
 
 mod message;
 mod post;
+mod read_line;
 
 fn main() {
     // Adapted from example at https://github.com/jonhoo/rust-imap/tree/v2.4.1#readme.
@@ -51,6 +52,8 @@ fn main() {
         post.update_if_mastodon_link();
         post.add_link_text();
         post.capitalize_tags();
+        post.confirm();
+        post.capitalize_tags(); // again because I might have added new tags
         post.render();
 
         imap_session
