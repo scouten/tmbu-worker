@@ -160,8 +160,17 @@ impl Post {
                     "Cicd" => {
                         tag = "CICD".to_owned();
                     }
+                    "Cli" => {
+                        tag = "CLI".to_owned();
+                    }
+                    "Crdt" => {
+                        tag = "CRDT".to_owned();
+                    }
                     "Cta" => {
                         tag = "CTA".to_owned();
+                    }
+                    "Git" => {
+                        tag = "git".to_owned();
                     }
                     "Github" => {
                         tag = "GitHub".to_owned();
@@ -172,11 +181,23 @@ impl Post {
                     "Html" => {
                         tag = "HTML".to_owned();
                     }
+                    "Ios" => {
+                        tag = "iOS".to_owned();
+                    }
+                    "Iphone" => {
+                        tag = "iPhone".to_owned();
+                    }
+                    "Javascript" => {
+                        tag = "JavaScript".to_owned();
+                    }
                     "Sast" => {
                         tag = "SAST".to_owned();
                     }
                     "Sbom" => {
                         tag = "SBOM".to_owned();
+                    }
+                    "Sql" => {
+                        tag = "SQL".to_owned();
                     }
                     "Usb" => {
                         tag = "USB".to_owned();
