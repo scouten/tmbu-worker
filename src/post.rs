@@ -157,6 +157,24 @@ impl Post {
                     "Aws" => {
                         tag = "AWS".to_owned();
                     }
+                    "Cicd" => {
+                        tag = "CICD".to_owned();
+                    }
+                    "Cta" => {
+                        tag = "CTA".to_owned();
+                    }
+                    "Github" => {
+                        tag = "GitHub".to_owned();
+                    }
+                    "Githubactions" => {
+                        tag = "GitHubActions".to_owned();
+                    }
+                    "Html" => {
+                        tag = "HTML".to_owned();
+                    }
+                    "Sast" => {
+                        tag = "SAST".to_owned();
+                    }
                     "Sbom" => {
                         tag = "SBOM".to_owned();
                     }
@@ -165,6 +183,12 @@ impl Post {
                     }
                     "Usb-C" => {
                         tag = "USB-C".to_owned();
+                    }
+                    "Vscode" => {
+                        tag = "VSCode".to_owned();
+                    }
+                    "Wasm" => {
+                        tag = "WASM".to_owned();
                     }
                     _ => (),
                 };
