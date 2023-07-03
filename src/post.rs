@@ -189,17 +189,15 @@ impl Post {
         writeln!(md, "[taxonomies]").unwrap();
 
         if !self.tags.is_empty() {
-            writeln!(
-                md,
-                "tag = [{tags}]",
-                tags = self
-                    .tags
-                    .iter()
-                    .map(|tag| format!("{tag:#?}"))
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )
-            .unwrap();
+            let mut tags = self
+                .tags
+                .iter()
+                .map(|tag| format!("{tag:#?}"))
+                .collect::<Vec<String>>();
+
+            tags.sort();
+
+            writeln!(md, "tag = [{tags}]", tags = tags.join(", ")).unwrap();
         }
 
         if let Some(ref via) = self.via {
