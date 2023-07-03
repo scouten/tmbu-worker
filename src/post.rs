@@ -1,4 +1,6 @@
-use std::{collections::HashSet, env, fs, fs::File, io::Write, path::PathBuf};
+use std::{
+    collections::HashSet, env, fs, fs::File, io, io::Write, path::PathBuf, process::Command,
+};
 
 use chrono::{offset::FixedOffset, DateTime, Datelike};
 use lazy_static::lazy_static;
@@ -164,7 +166,7 @@ impl Post {
 
         let date = self.date.date_naive();
 
-        let mut page_path = PathBuf::from(zola_path);
+        let mut page_path = PathBuf::from(&zola_path);
         page_path = page_path.join("content");
         page_path = page_path.join(date.year().to_string());
         fs::create_dir_all(&page_path).unwrap();
@@ -176,7 +178,7 @@ impl Post {
             slug = slug_from_title(&self.subject)
         ));
 
-        println!("Creating blog post at {page_path:#?}");
+        println!("\nCreating blog post at {page_path:#?}");
 
         let mut md = File::create(&page_path).unwrap();
         writeln!(md, "+++").unwrap();
@@ -216,6 +218,27 @@ impl Post {
         writeln!(md).unwrap();
 
         writeln!(md, "{after}", after = after.trim()).unwrap();
+
+        drop(md);
+
+        println!("Confirm page content:");
+        let mut resp = String::new();
+        io::stdin().read_line(&mut resp).unwrap();
+
+        Command::new("git")
+            .arg("add")
+            .arg(&page_path)
+            .current_dir(&zola_path)
+            .output()
+            .unwrap();
+
+        Command::new("git")
+            .arg("commit")
+            .arg("-m")
+            .arg(&self.subject)
+            .current_dir(&zola_path)
+            .output()
+            .unwrap();
     }
 }
 
