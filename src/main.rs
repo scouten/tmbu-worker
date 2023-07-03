@@ -59,10 +59,6 @@ fn main() {
         imap_session
             .store(format!("{}", imap_message.message), "+FLAGS (\\Deleted)")
             .unwrap();
-
-        if true {
-            panic!("One is enough for now ...");
-        }
     }
 
     // Be nice to the server and log out.
