@@ -19,3 +19,15 @@ Consider this inspire-ware, not a significant or supported project. I'll maintai
 * merge PRs that make this into a more general-purpose tool.
 
 If any of that causes heartache for you, I invite you to fork this code and proceed on your own. I won't be offended. Send me a link to your fork and I'll happily include a link here.
+
+## Credits
+
+This tool wouldn't have been possible without the following open-source crates:
+
+* [imap](https://crates.io/crates/imap)
+* [regex](https://crates.io/crates/regex)
+* [reqwest](https://crates.io/crates/reqwest)
+* [serde](https://crates.io/crates/serde)
+* [titlecase](https://crates.io/crates/titlecase)
+
+Thank you to the authors of these crates!
