@@ -151,8 +151,14 @@ impl Post {
             .map(|tag| {
                 let mut tag = titlecase(tag);
                 match tag.as_str() {
+                    "1password" => {
+                        tag = "1Password".to_owned();
+                    }
                     "Activitypub" => {
                         tag = "ActivityPub".to_owned();
+                    }
+                    "Aqi" => {
+                        tag = "AQI".to_owned();
                     }
                     "Aws" => {
                         tag = "AWS".to_owned();
@@ -165,6 +171,9 @@ impl Post {
                     }
                     "Crdt" => {
                         tag = "CRDT".to_owned();
+                    }
+                    "Css" => {
+                        tag = "CSS".to_owned();
                     }
                     "Cta" => {
                         tag = "CTA".to_owned();
