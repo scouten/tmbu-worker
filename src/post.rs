@@ -199,6 +199,9 @@ impl Post {
                     "Javascript" => {
                         tag = "JavaScript".to_owned();
                     }
+                    "Oss" => {
+                        tag = "OSS".to_owned();
+                    }
                     "Sast" => {
                         tag = "SAST".to_owned();
                     }
