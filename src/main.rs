@@ -50,6 +50,7 @@ fn main() {
         // Now turn the parsed message into a pending Zola post.
         let mut post = post::Post::from(message);
         post.update_if_mastodon_link();
+        post.update_if_unsigned_mastodon_link();
         post.add_link_text();
         post.capitalize_tags();
         post.confirm();

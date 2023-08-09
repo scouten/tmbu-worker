@@ -111,6 +111,91 @@ impl Post {
         .to_owned();
     }
 
+    pub fn update_if_unsigned_mastodon_link(&mut self) {
+        // If the link is a Mastodon post from a server that
+        // requires signed requests, read it and update the link
+        // and text accordingly.
+
+        // If no link, nothing to do here.
+        let link = match self.link {
+            Some(ref link) => link.to_owned(),
+            None => {
+                return;
+            }
+        };
+
+        let client = reqwest::blocking::Client::builder().build().unwrap();
+
+        let post = match client
+            .get(&link)
+            .header("Accept", "text/html")
+            .send()
+            .and_then(|r| r.text())
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                eprintln!("Unable to follow post link as HTML {link}\n\n{e}\n");
+                return;
+            }
+        };
+
+        dbg!(&post);
+
+        let user = if link.starts_with("https://botsin.space/@RustTrending/") {
+            MastodonUser {
+                name: "Rust Trending".to_owned()
+            }
+        } else {
+            eprintln!("Need user for link {link}");
+            return;
+        };
+
+        // Attempt to pull post content out of meta content header.
+
+        lazy_static! {
+            static ref META_CONTENT: Regex = Regex::new(r#"<meta content='([^']*)' name='description'>"#).unwrap();
+        }
+
+        let mut user_comment = if let Some(content_capture) = META_CONTENT.captures(&post) {
+            content_capture[1].to_owned()
+        } else {
+            return;
+        };
+
+        // OK, this is likely a Mastodon post link.
+        // See if it has a link to another page.
+        lazy_static! {
+            static ref A_HREF: Regex = Regex::new(r#"(https://[^ ]*)"#).unwrap();
+        }
+
+        if let Some(link_capture) = A_HREF.captures(&user_comment) {
+            let href = link_capture[1].to_owned();
+            self.link = Some(href.to_string());
+
+            user_comment = A_HREF.replace(&user_comment, "").to_string();
+        }
+
+        lazy_static! {
+            static ref P: Regex = Regex::new(r#"</?p>"#).unwrap();
+        }
+
+        user_comment = P.replace_all(&user_comment, "\n").trim().to_string();
+
+        // Update pending Zola post.
+        self.via = Some("Mastodon".to_owned());
+
+        let mut text = self.text.clone();
+        text = text.replace(&link, "");
+        text = text.trim().to_owned();
+
+        self.text = format!(
+            "via [{user_name}]({link}): {user_comment}\n\n{text}",
+            user_name = user.name,
+        )
+        .trim()
+        .to_owned();
+    }
+
     pub fn add_link_text(&mut self) {
         // If post contains a link, grab its title and
         // add that link to the end of the post message.
