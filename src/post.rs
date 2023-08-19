@@ -60,19 +60,30 @@ impl Post {
             }
         };
 
-        let user: MastodonUser = match client
-            .get(&note.attributed_to)
-            .header("Accept", "application/activity+json")
-            .send()
-            .and_then(|r| r.json())
-        {
-            Ok(resp) => resp,
-            Err(e) => {
-                eprintln!(
-                    "Unable to follow user link {link}\n\n{e}\n",
-                    link = note.attributed_to
-                );
-                return;
+        let user: MastodonUser = match note.attributed_to {
+            Some(ref att) => {
+                match client
+                    .get(att)
+                    .header("Accept", "application/activity+json")
+                    .send()
+                    .and_then(|r| r.json())
+                {
+                    Ok(resp) => resp,
+                    Err(e) => {
+                        panic!("Unable to follow user link {link}\n\n{e}\n", link = att);
+                    }
+                }
+            }
+            None => {
+                // Argh. Some Mastodon instances don't provide user info.
+
+                if link.starts_with("https://botsin.space/@RustTrending/") {
+                    MastodonUser {
+                        name: "Rust Trending".to_owned(),
+                    }
+                } else {
+                    panic!("No known user for link {link}");
+                }
             }
         };
 
@@ -143,7 +154,7 @@ impl Post {
 
         let user = if link.starts_with("https://botsin.space/@RustTrending/") {
             MastodonUser {
-                name: "Rust Trending".to_owned()
+                name: "Rust Trending".to_owned(),
             }
         } else {
             eprintln!("Need user for link {link}");
@@ -153,7 +164,8 @@ impl Post {
         // Attempt to pull post content out of meta content header.
 
         lazy_static! {
-            static ref META_CONTENT: Regex = Regex::new(r#"<meta content='([^']*)' name='description'>"#).unwrap();
+            static ref META_CONTENT: Regex =
+                Regex::new(r#"<meta content='([^']*)' name='description'>"#).unwrap();
         }
 
         let mut user_comment = if let Some(content_capture) = META_CONTENT.captures(&post) {
@@ -418,7 +430,7 @@ impl Post {
 #[derive(Debug, Deserialize)]
 struct MastodonNote {
     #[serde(rename = "attributedTo")]
-    pub(crate) attributed_to: String,
+    pub(crate) attributed_to: Option<String>,
 
     pub(crate) content: String,
 }
