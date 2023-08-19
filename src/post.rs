@@ -232,13 +232,22 @@ impl Post {
             static ref TITLE: Regex = Regex::new(r#"<title>(.*)</title>"#).unwrap();
         }
 
-        let title = if let Some(link_capture) = TITLE.captures(&body) {
+        let mut title = if let Some(link_capture) = TITLE.captures(&body) {
             link_capture[1].to_owned()
         } else {
             link.to_owned()
         };
 
-        self.text = format!("{text}\n\n[{title}]({link})", text = self.text);
+        let site_name: Option<&str> = if title.starts_with("GitHub - ") {
+            title = title.replace("GitHub - ", "");
+            Some("GitHub")
+        } else {
+            None
+        };
+
+        let site_name = site_name.map_or("".to_owned(), |s| format!("{s}: "));
+
+        self.text = format!("{text}\n\n{site_name}[{title}]({link})", text = self.text);
     }
 
     pub fn capitalize_tags(&mut self) {
