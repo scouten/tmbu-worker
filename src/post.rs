@@ -308,6 +308,9 @@ impl Post {
                     "Oss" => {
                         tag = "OSS".to_owned();
                     }
+                    "Pdf" => {
+                        tag = "PDF".to_owned();
+                    }
                     "Sast" => {
                         tag = "SAST".to_owned();
                     }
@@ -316,6 +319,9 @@ impl Post {
                     }
                     "Sql" => {
                         tag = "SQL".to_owned();
+                    }
+                    "Sqlite" => {
+                        tag = "SQLite".to_owned();
                     }
                     "Usb" => {
                         tag = "USB".to_owned();
